@@ -3,13 +3,11 @@ package me.emafire003.dev.custombrewrecipes.mixin;
 import me.emafire003.dev.custombrewrecipes.CustomBrewRecipeRegister;
 import net.minecraft.block.entity.BrewingStandBlockEntity;
 import net.minecraft.item.ItemStack;
-import org.spongepowered.asm.mixin.Debug;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-@Debug(export = true)
 @Mixin(BrewingStandBlockEntity.class)
 public abstract class BrewingStandMixin {
 
