@@ -1,38 +1,29 @@
 {
 	"schemaVersion": 1,
-	"id": "modid",
+	"id": "custombrewrecipes",
 	"version": "${version}",
-	"name": "Example mod",
-	"description": "This is an example description! Tell everyone what your mod is about!",
+	"name": "CustomBrewRecipes",
+	"description": "A fabric mod that makes it easy for developers adding non-potion brewing recipes that support NBT data! ",
 	"authors": [
-		"Me!"
+		"Emafire003"
 	],
 	"contact": {
-		"homepage": "https://fabricmc.net/",
-		"sources": "https://github.com/FabricMC/fabric-example-mod"
+		"homepage": "https://modrinth.com/mod/CustomBrewRecipes",
+		"sources": "https://github.com/Emafire003/CustomBrewRecipes",
+		"issues": "https://github.com/Emafire003/CustomBrewRecipes/issues"
 	},
 	"license": "CC0-1.0",
-	"icon": "assets/modid/icon.png",
+	"icon": "assets/custombrewrecipes/icon.png",
 	"environment": "*",
 	"entrypoints": {
-		"main": [
-			"com.example.ExampleMod"
-		],
-		"client": [
-			"com.example.ExampleModClient"
-		]
 	},
 	"mixins": [
-		"modid.mixins.json",
-		{
-			"config": "modid.client.mixins.json",
-			"environment": "client"
-		}
+      "custombrewrecipes.mixins.json"
 	],
 	"depends": {
-		"fabricloader": ">=0.15.0",
-		"minecraft": "~1.20.4",
-		"java": ">=17",
+		"fabricloader": ">=0.15.3",
+		"minecraft": ">=1.20-",
+		"java": ">=16",
 		"fabric-api": "*"
 	},
 	"suggests": {

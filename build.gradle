@@ -19,12 +19,10 @@ repositories {
 }
 
 loom {
-    splitEnvironmentSourceSets()
 
 	mods {
-		"modid" {
+		"custombrewrecipes" {
 			sourceSet sourceSets.main
-			sourceSet sourceSets.client
 		}
 	}
 
@@ -62,6 +60,7 @@ java {
 	// if it is present.
 	// If you remove this line, sources will not be generated.
 	withSourcesJar()
+	withJavadocJar()
 
 	sourceCompatibility = JavaVersion.VERSION_17
 	targetCompatibility = JavaVersion.VERSION_17
