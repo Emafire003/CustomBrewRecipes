@@ -1,5 +1,6 @@
 package me.emafire003.dev.custombrewrecipes.mixin;
 
+import com.mojang.datafixers.util.Pair;
 import me.emafire003.dev.custombrewrecipes.CustomBrewRecipeRegister;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -27,12 +28,12 @@ public abstract class CustomBrewRecipesMixin{
         }
 
         for(CustomBrewRecipeRegister.CustomRecipe<Item> recipe : CustomBrewRecipeRegister.getCustomRecipesNBTMap().keySet()){
-            CustomBrewRecipeRegister.CustomRecipe<NbtCompound> nbt_recipe = CustomBrewRecipeRegister.getCustomRecipesNBTMap().get(recipe);
+            CustomBrewRecipeRegister.CustomRecipe<Pair<NbtCompound, String>> nbt_recipe = CustomBrewRecipeRegister.getCustomRecipesNBTMap().get(recipe);
             if(CustomBrewRecipeRegister.equalsNbt(ingredient, recipe.ingredient(), nbt_recipe.ingredient())
                     && CustomBrewRecipeRegister.equalsNbt(input, recipe.input(), nbt_recipe.input())
             ){
                 ItemStack out = new ItemStack(recipe.output());
-                out.setNbt(nbt_recipe.output());
+                out.setNbt(nbt_recipe.output().getFirst());
                 cir.setReturnValue(out);
                 return;
             }
