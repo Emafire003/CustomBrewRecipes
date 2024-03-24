@@ -12,6 +12,13 @@ CustomBrewRecipeRegister.registerCustomRecipeNbt()
 ```
 and either use itemstacks that already have nbt or supply the nbt to the method.
 
+### From version 1.1.0
+You can also check for the presence of nbt-fields and not their values! 
+```java
+CustomBrewRecipeRegister.registerCustomRecipeFieldOnlyNbt()
+```
+NB: The output item will still need to have the whole NBT, since it's the one which is going to be created!
+
 ## Setup
 
 You can add it to your project by adding in your build.gradle:
