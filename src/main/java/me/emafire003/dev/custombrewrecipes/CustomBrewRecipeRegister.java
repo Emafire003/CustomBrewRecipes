@@ -1,23 +1,21 @@
 package me.emafire003.dev.custombrewrecipes;
 
-import com.mojang.datafixers.util.Pair;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtElement;
 import org.jetbrains.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 
 public class CustomBrewRecipeRegister {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger("custombrewrecipes");
+    //public static final Logger LOGGER = LoggerFactory.getLogger("custombrewrecipes");
 
     private static final List<CustomRecipe<Item>> CUSTOM_RECIPES = new ArrayList<>();
-    private static final HashMap<CustomRecipe<Item>, CustomRecipe<Pair<NbtCompound, String>>> CUSTOM_RECIPES_NBT_MAP = new HashMap<>();
+    private static final List<CustomRecipeV2> CUSTOM_RECIPES_NBT = new ArrayList<>();
 
 
     /**Use this method to register new recipes using custom items!
@@ -43,8 +41,7 @@ public class CustomBrewRecipeRegister {
      * @param output_nbt An NBT compound that will be attached to the output item. Use null if you don't want to add NBT to this item
      * */
     public static void registerCustomRecipeNbt(Item input, Item ingredient, Item output, @Nullable NbtCompound input_nbt, @Nullable NbtCompound ingredient_nbt, @Nullable NbtCompound output_nbt) {
-        CUSTOM_RECIPES_NBT_MAP.put(new CustomRecipe<>(input, ingredient, output), new CustomRecipe<>(new Pair<>(input_nbt, null), new Pair<>(ingredient_nbt, null), new Pair<>(output_nbt, null)));
-        //CUSTOM_RECIPES_NBT_MAP.put(new CustomRecipe<>(input, ingredient, output), new CustomRecipe<>(input_nbt, ingredient_nbt, output_nbt));
+        CUSTOM_RECIPES_NBT.add(new CustomRecipeV2(input, ingredient, output, input_nbt, ingredient_nbt, output_nbt));
     }
 
     /**Use this method to register new recipes using custom items.
@@ -53,7 +50,6 @@ public class CustomBrewRecipeRegister {
      * For example a Glass Bottle with an NBT field of "filledWith" might have values of "air", "water", "random_stuff" or whatever
      * and still be valid.
      * The output item will still need a nbt compound value thogh!
-     *
      * Call this on initialization!
      *
      * @param input The input item, the "base" item like a water_bottle for normal recipes
@@ -64,7 +60,28 @@ public class CustomBrewRecipeRegister {
      * @param output_nbt An NBT compound that will be attached to the output item. Use null if you don't want to add NBT to this item
      * */
     public static void registerCustomRecipeFieldOnlyNbt(Item input, Item ingredient, Item output, @Nullable String input_nbt_field, @Nullable String ingredient_nbt_field, @Nullable NbtCompound output_nbt) {
-        CUSTOM_RECIPES_NBT_MAP.put(new CustomRecipe<>(input, ingredient, output), new CustomRecipe<>(new Pair<>(null, input_nbt_field), new Pair<>(null, ingredient_nbt_field), new Pair<>(output_nbt, null)));
+        CUSTOM_RECIPES_NBT.add(new CustomRecipeV2(input, ingredient, output, input_nbt_field, ingredient_nbt_field, output_nbt));
+    }
+
+    /**Use this method to register new recipes using custom items.
+     * This also supports nbt, but in a different way:
+     * it will check for the presence of a field, its values.
+     * For example a Glass Bottle with an NBT field of "filledWith" might have values of "air", "water", "random_stuff" or whatever
+     * and only "air" will be valid. If the NBT also contains other fieldds, they will be ignored.
+     * The output item will still need a nbt compound value!
+     * Call this on initialization!
+     *
+     * @param input The input item, the "base" item like a water_bottle for normal recipes
+     * @param ingredient The ingredient item, like spider's eye, glowstone dust ecc
+     * @param output The output item, the one that will result from this recipe
+     * @param input_nbt_field A String that corresponds to a field that must be present on the item, regardless of its value
+     * @param input_nbt_value An NBTElement that will need to correspond the value stored inside the specified field
+     * @param ingredient_nbt_field A String that corresponds to a field that must be present on the item, regardless of its value
+     * @param ingredient_nbt_value An NBTElement that will need to correspond the value stored inside the specified field
+     * @param output_nbt An NBT compound that will be attached to the output item. Use null if you don't want to add NBT to this item
+     * */
+    public static void registerCustomRecipeNbtField(Item input, Item ingredient, Item output, @Nullable String input_nbt_field, @Nullable NbtElement input_nbt_value, @Nullable String ingredient_nbt_field, @Nullable NbtElement ingredient_nbt_value, @Nullable NbtCompound output_nbt) {
+        CUSTOM_RECIPES_NBT.add(new CustomRecipeV2(input, ingredient, output, input_nbt_value, input_nbt_field, ingredient_nbt_value, ingredient_nbt_field, output_nbt));
     }
 
     /**Use this method to register new recipes using custom items!
@@ -76,7 +93,7 @@ public class CustomBrewRecipeRegister {
      * @param output The output itemstack, the one that will result from this recipe. This should already have NBT set by you.
      * */
     public static void registerCustomRecipeNbt(ItemStack input, ItemStack ingredient, ItemStack output) {
-        CUSTOM_RECIPES_NBT_MAP.put(new CustomRecipe<>(input.getItem(), ingredient.getItem(), output.getItem()), new CustomRecipe<>(new Pair<>(input.getNbt(), null), new Pair<>(ingredient.getNbt(), null), new Pair<>(output.getNbt(), null)));
+        CUSTOM_RECIPES_NBT.add(new CustomRecipeV2(input.getItem(), ingredient.getItem(), output.getItem(), input.getNbt(), ingredient.getNbt(), output.getNbt()));
     }
 
 
@@ -93,8 +110,8 @@ public class CustomBrewRecipeRegister {
                 return true;
             }
         }
-        for(CustomRecipe<Item> recipe : CUSTOM_RECIPES_NBT_MAP.keySet()){
-            if(equalsNbt(item, recipe.input, CUSTOM_RECIPES_NBT_MAP.get(recipe).input)){
+        for(CustomRecipeV2 recipe : CUSTOM_RECIPES_NBT){
+            if(equalsNbt(item, recipe.input, recipe.ingredient_nbt, recipe.ingredient_nbt_field)){
                 return true;
             }
         }
@@ -108,7 +125,7 @@ public class CustomBrewRecipeRegister {
             return recipe_item.isOf(item.getItem());
         }
 
-        return recipe_item.isOf(item.getItem()) && recipe_item.hasNbt() && item.hasNbt() && recipe_item.getNbt().equals(item.getNbt());
+        return recipe_item.isOf(item.getItem()) && recipe_item.hasNbt() && item.hasNbt() && Objects.requireNonNull(recipe_item.getNbt()).equals(item.getNbt());
     }
 
     /**Used to check if an itemstack and an item share the same NBT data.
@@ -118,27 +135,34 @@ public class CustomBrewRecipeRegister {
      *
      * @param item The itemstack that is used and should have nbt data
      * @param recipe_item The item from the recipe
-     * @param nbt_with_field A pair of NbtCompound and a String representing a filed that item nbt must contain.
+     * @param recipe_nbt_value An NBTElement value that will need to correspond either to the whole NBTCompound of the item, or to a value stored in a filed if the next parameter isn't null
+     * @param recipe_nbt_field A String representing the field that has to be present on the item if the above parameter is null, or if isn't the filed to check the value of.
      *
      * @return true if the item from the stack and the one from the recipe have the same nbt, or don't have nbt.
      * */
-    public static boolean equalsNbt(ItemStack item, Item recipe_item, @Nullable Pair<NbtCompound, String> nbt_with_field){
+    public static boolean equalsNbt(ItemStack item, Item recipe_item, @Nullable NbtElement recipe_nbt_value, @Nullable String recipe_nbt_field){
 
-        //This checks if the item doesn't have nbt and if the pair is null or both of the string filed and nbt are null, in which case the recipe data is null so we simply check to see if the item is the same one
-        if(!item.hasNbt() && (nbt_with_field == null || (nbt_with_field.getFirst() == null && nbt_with_field.getSecond() == null))){
-            //LOGGER.info("Returning " + item.isOf(recipe_item) + " beacuse both don't have nbt or strings");
+        //Checks if they item doesn't have NBT and if the recipe nbt & field are null, in which case it returns true only if the item and the one on the recipe are the same type
+        if(!item.hasNbt() && (recipe_nbt_value == null && recipe_nbt_field == null)){
             return item.isOf(recipe_item);
         }
-        if(nbt_with_field == null){
-            return false;
-        }
 
-        //If the string is not null it means it wants to check for the presence of a filed and not its contents
-        if(nbt_with_field.getSecond() != null){
+        //If the string is not null it means it wants to check for the presence of a filed (and potentially its contents)
+        if(recipe_nbt_field != null){
 
-            String nbt_field = nbt_with_field.getSecond();
+            //Checks if there is an NbtElement, in which case it means a check for the value is needed as well
+            if(recipe_nbt_value != null){
+                if(item.hasNbt() && item.getNbt() != null && item.getNbt().contains(recipe_nbt_field)){
+                    //No need to check if it's null because the recipe's value surely isn't null in here.
+                    return Objects.requireNonNull(item.getNbt().get(recipe_nbt_field)).equals(recipe_nbt_value);
+                }
+                return false;
+            }
+
+            //If the NbtElement is null then only check for the presence of the field.
+
             if(item.hasNbt() && item.getNbt() != null){
-                return item.getNbt().contains(nbt_field);
+                return item.getNbt().contains(recipe_nbt_field);
             }
             //If the string is not null, but it's not present on the item return false.
             return false;
@@ -146,17 +170,16 @@ public class CustomBrewRecipeRegister {
 
         //If we are here it means that strings have been checked already,
         //so if the NBT value is null and the item does not have nbt we simply check if the item is the same
-        if(!item.hasNbt() && nbt_with_field.getFirst() == null){
+        if((!item.hasNbt() || item.getNbt()==null) && recipe_nbt_value == null){
             return item.isOf(recipe_item);
         }
 
         //If the thing is null, it means it wants to check for the whole nbt compound to be equal
-        NbtCompound nbt = nbt_with_field.getFirst();
-        if(nbt == null){
+        if(recipe_nbt_value == null){
+            //Since only the recipe_nbt_is false but the item still has it, they can't be the same.
             return false;
         }
-
-        if(nbt.equals(item.getNbt())){
+        if(recipe_nbt_value.equals(item.getNbt())){
             return item.isOf(recipe_item);
         }
         return false;
@@ -166,10 +189,63 @@ public class CustomBrewRecipeRegister {
         return CUSTOM_RECIPES;
     }
 
-    public static HashMap<CustomRecipe<Item>, CustomRecipe<Pair<NbtCompound, String>>> getCustomRecipesNBTMap(){
-        return CUSTOM_RECIPES_NBT_MAP;
+    public static List<CustomRecipeV2> getCustomRecipesNBTMap(){
+        return CUSTOM_RECIPES_NBT;
     }
 
     public record CustomRecipe<T>(T input, T ingredient, T output) {
     }
+
+    public static class CustomRecipeV2{
+        public Item input;
+        public Item ingredient;
+        public Item output;
+        @Nullable
+        public NbtElement input_nbt;
+        @Nullable
+        public  NbtElement ingredient_nbt;
+        @Nullable
+        public NbtElement output_nbt;
+        @Nullable
+        public String input_nbt_field;
+        @Nullable
+        public String ingredient_nbt_field;
+
+        public CustomRecipeV2(Item input, Item ingredient, Item output){
+            this.input = input;
+            this.ingredient = ingredient;
+            this.output = output;
+        }
+
+        public CustomRecipeV2(Item input, Item ingredient, Item output, @Nullable NbtElement input_nbt, @Nullable NbtElement ingredient_nbt, @Nullable NbtElement output_nbt){
+            this.input = input;
+            this.ingredient = ingredient;
+            this.output = output;
+            this.input_nbt = input_nbt;
+            this.ingredient_nbt = ingredient_nbt;
+            this.output_nbt = output_nbt;
+        }
+
+        public CustomRecipeV2(Item input, Item ingredient, Item output, @Nullable String input_nbt_field, @Nullable String ingredient_nbt_field, @Nullable NbtElement output_nbt){
+            this.input = input;
+            this.ingredient = ingredient;
+            this.output = output;
+            this.input_nbt_field = input_nbt_field;
+            this.ingredient_nbt_field = ingredient_nbt_field;
+            this.output_nbt = output_nbt;
+        }
+
+        public CustomRecipeV2(Item input, Item ingredient, Item output, @Nullable NbtElement input_nbt, @Nullable String input_nbt_field, @Nullable NbtElement ingredient_nbt, @Nullable String ingredient_nbt_field, @Nullable NbtElement output_nbt){
+            this.input = input;
+            this.ingredient = ingredient;
+            this.output = output;
+            this.input_nbt = input_nbt;
+            this.ingredient_nbt = ingredient_nbt;
+            this.input_nbt_field = input_nbt_field;
+            this.ingredient_nbt_field = ingredient_nbt_field;
+            this.output_nbt = output_nbt;
+        }
+
+    }
+
 }

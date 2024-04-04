@@ -1,6 +1,5 @@
 package me.emafire003.dev.custombrewrecipes.mixin;
 
-import com.mojang.datafixers.util.Pair;
 import me.emafire003.dev.custombrewrecipes.CustomBrewRecipeRegister;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -14,29 +13,30 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(BrewingRecipeRegistry.class)
 public abstract class CustomBrewRecipesMixin{
+
     @Inject(method = "craft", at = @At(value = "TAIL"), cancellable = true)
-    private static void customCraftInject(ItemStack ingredient, ItemStack input, CallbackInfoReturnable<ItemStack> cir){
-        if(input == null || ingredient == null){
+    private static void customCraftInject(ItemStack ingredient, ItemStack input, CallbackInfoReturnable<ItemStack> cir) {
+        if (input == null || ingredient == null) {
             return;
         }
 
-        for(CustomBrewRecipeRegister.CustomRecipe<Item> recipe : CustomBrewRecipeRegister.getCustomRecipes()) {
+        for (CustomBrewRecipeRegister.CustomRecipe<Item> recipe : CustomBrewRecipeRegister.getCustomRecipes()) {
             if (recipe.input().equals(input.getItem()) && recipe.ingredient().equals(ingredient.getItem())) {
                 cir.setReturnValue(new ItemStack(recipe.output()));
                 return;
             }
         }
 
-        for(CustomBrewRecipeRegister.CustomRecipe<Item> recipe : CustomBrewRecipeRegister.getCustomRecipesNBTMap().keySet()){
-            CustomBrewRecipeRegister.CustomRecipe<Pair<NbtCompound, String>> nbt_recipe = CustomBrewRecipeRegister.getCustomRecipesNBTMap().get(recipe);
-            if(CustomBrewRecipeRegister.equalsNbt(ingredient, recipe.ingredient(), nbt_recipe.ingredient())
-                    && CustomBrewRecipeRegister.equalsNbt(input, recipe.input(), nbt_recipe.input())
+        for (CustomBrewRecipeRegister.CustomRecipeV2 recipe : CustomBrewRecipeRegister.getCustomRecipesNBTMap()) {
+            if (CustomBrewRecipeRegister.equalsNbt(ingredient, recipe.ingredient, recipe.ingredient_nbt, recipe.ingredient_nbt_field)
+                    && CustomBrewRecipeRegister.equalsNbt(input, recipe.input, recipe.input_nbt, recipe.input_nbt_field)
             ){
-                ItemStack out = new ItemStack(recipe.output());
-                out.setNbt(nbt_recipe.output().getFirst());
+                ItemStack out = new ItemStack(recipe.output);
+                out.setNbt((NbtCompound) recipe.output_nbt);
                 cir.setReturnValue(out);
                 return;
             }
+
         }
     }
 
@@ -61,9 +61,9 @@ public abstract class CustomBrewRecipesMixin{
                 return true;
             }
         }
-        for(CustomBrewRecipeRegister.CustomRecipe<Item> recipe : CustomBrewRecipeRegister.getCustomRecipesNBTMap().keySet()){
-            if(CustomBrewRecipeRegister.equalsNbt(ingredient, recipe.ingredient(), CustomBrewRecipeRegister.getCustomRecipesNBTMap().get(recipe).ingredient())
-                    && CustomBrewRecipeRegister.equalsNbt(input, recipe.input(), CustomBrewRecipeRegister.getCustomRecipesNBTMap().get(recipe).input())
+        for (CustomBrewRecipeRegister.CustomRecipeV2 recipe : CustomBrewRecipeRegister.getCustomRecipesNBTMap()) {
+            if (CustomBrewRecipeRegister.equalsNbt(ingredient, recipe.ingredient, recipe.ingredient_nbt, recipe.ingredient_nbt_field)
+                    && CustomBrewRecipeRegister.equalsNbt(input, recipe.input, recipe.input_nbt, recipe.input_nbt_field)
             ){
                 return true;
             }
@@ -79,14 +79,12 @@ public abstract class CustomBrewRecipesMixin{
                 return true;
             }
         }
-        for(CustomBrewRecipeRegister.CustomRecipe<Item> recipe : CustomBrewRecipeRegister.getCustomRecipesNBTMap().keySet()){
-            if(CustomBrewRecipeRegister.equalsNbt(stack, recipe.ingredient(), CustomBrewRecipeRegister.getCustomRecipesNBTMap().get(recipe).ingredient())
-            ){
+        for(CustomBrewRecipeRegister.CustomRecipeV2 recipe : CustomBrewRecipeRegister.getCustomRecipesNBTMap()){
+            if(CustomBrewRecipeRegister.equalsNbt(stack, recipe.ingredient, recipe.ingredient_nbt, recipe.ingredient_nbt_field)){
                 return true;
             }
         }
         return false;
     }
-
 
 }
