@@ -1,5 +1,6 @@
 package me.emafire003.dev.custombrewrecipes;
 
+import net.minecraft.component.Component;
 import net.minecraft.component.ComponentMap;
 import net.minecraft.component.DataComponentType;
 import net.minecraft.item.Item;
@@ -10,6 +11,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+
 
 public class CustomBrewRecipeRegister {
 
@@ -30,8 +33,8 @@ public class CustomBrewRecipeRegister {
     public static void registerCustomRecipe(Item input, Item ingredient, Item output) {
         CUSTOM_RECIPES.add(new CustomRecipe<>(input, ingredient, output));
     }
-    
-    //TODO add a way to only register custom data, aka the old NBT, instead of all the components and stuff. 
+
+    //TODO add a way to only register custom data, aka the old NBT, instead of all the components and stuff.
 
     /**Use this method to register new recipes using custom items.
      * This also supports nbt!
@@ -92,12 +95,10 @@ public class CustomBrewRecipeRegister {
      * @param output_components A ComponentMap that will be attached to the output item. You can use item.getComponents().add(yourstuff).
      * */
     //TODO make an NBT only version
-    //TODO may need yet another list to check the presence of only the DataComponentType
     public static void registerCustomRecipeWithComponentPresence(Item input, Item ingredient, Item output, @Nullable DataComponentType<?> input_component_type, @Nullable DataComponentType<?> ingredient_component_type, @Nullable ComponentMap output_components) {
         CUSTOM_RECIPES_COMPONENTS.add(new CustomRecipeV2(input, ingredient, output, ComponentMap.builder().add(input_component_type, null).build(), input_component_type, ComponentMap.builder().add(ingredient_component_type, null).build(), ingredient_component_type, output_components));
     }
-    //TODO implement a check to see if the component map is made up of only one thing, and if it is
-    
+
 
     /**Use this method to register new recipes using custom items.
      * This also supports nbt, but in a different way:
@@ -116,26 +117,42 @@ public class CustomBrewRecipeRegister {
      * @param ingredient_component_value The value of the component that the ingredient item must have
      * @param output_components A {@link ComponentMap} that will be attached to the output item. Use null if you don't want to add NBT to this item
      * */
-    //TODO add the proper check
     public static <T, U> void registerCustomRecipeWithComponentType(Item input, Item ingredient, Item output, @Nullable DataComponentType<T> input_component_type, @Nullable T input_component_value, @Nullable DataComponentType<U> ingredient_component_type, @Nullable U ingredient_component_value, @Nullable ComponentMap output_components) {
         CUSTOM_RECIPES_COMPONENTS.add(new CustomRecipeV2(input, ingredient, output, ComponentMap.builder().add(input_component_type, input_component_value).build(), input_component_type, ComponentMap.builder().add(ingredient_component_type, ingredient_component_value).build(), ingredient_component_type, output_components));
     }
 
 
+    /**This checks the all the components from the item, and if any of them are either not
+     * present or have a different value from the other component set, returns false,
+     * true otherwise*/
+    private static boolean checkSameComponents(ItemStack item, ComponentMap other){
+        for(Component<?> component : item.getComponents().stream().toList()){
+            if(!other.contains(component.type())){
+                return false;
+            }else if(!Objects.equals(other.get(component.type()), component.value())){
+                return false;
+            }
+        }
+        return true;
+    }
 
+    /**Returns true if only the default components are present on the item
+     *
+     * Aka the old NBT not present*/
+    private static boolean checkDefaultComponentsOnly(ItemStack item){
+        return checkSameComponents(item, item.getDefaultComponents());
+    }
 
-
-    public static boolean equalsComponentsNew(ItemStack item, Item recipe_item, @Nullable ComponentMap recipe_components, @Nullable DataComponentType<?> recipe_component_type){
-
+    public static boolean equalsComponents(ItemStack item, Item recipe_item, @Nullable ComponentMap recipe_components, @Nullable DataComponentType<?> recipe_component_type){
         //Checks if they item doesn't have components and if the recipe components & types are null, in which case it returns true only if the item and the one on the recipe are the same type
-        if(item.getComponents().isEmpty() && (recipe_components == null && recipe_component_type == null)){
+        if(checkDefaultComponentsOnly(item) && (recipe_components == null && recipe_component_type == null)){
+
             return item.isOf(recipe_item);
         }
 
         //If the recipe component type parameter is not null it means it wants to check for the presence
         // of a filed/component (and potentially its contents)
         if(recipe_component_type != null){
-
             //Checks if there is a ComponentMap, in which case it means a check for the value is needed as well
             //(as long as there is only one component. not necessarily.) TODO maybe I should add a check for multiple components with values
             //The recipe components can be null since they are user specified, while the item components can't. At most they will be empty
@@ -145,37 +162,51 @@ public class CustomBrewRecipeRegister {
                     return item.getComponents().get(recipe_component_type).equals(recipe_components.get(recipe_component_type));
                 }
                 return false;
-                /*
-                if(item.hasNbt() && item.getNbt() != null && item.getNbt().contains(recipe_nbt_field)){
-
-                    return Objects.requireNonNull(item.getNbt().get(recipe_nbt_field)).equals(recipe_nbt_value);
-                }
-                return false;*/
             }
-
             //If the ComponentMap is null then only check for the presence of the field.
             return item.getComponents().contains(recipe_component_type);
         }
 
         //If we are here it means that Component Types have been checked already,
         //so if the component value is null and the item does not have components we simply check if the item is the same
-        if(item.getComponents().isEmpty() && recipe_components == null){
+        if(checkDefaultComponentsOnly(item) && recipe_components == null){
+            //LOGGER.info("Item is of: " + item.isOf(recipe_item));
             return item.isOf(recipe_item);
         }
 
         //If the thing is null, it means it wants to check for the whole nbt compound to be equal
         if(recipe_components == null){
-            //Since only the recipe_nbt_is false but the item still has it, they can't be the same.
+            //Since only the recipe_nbt is false but the item still has it, they can't be the same.
             return false;
         }
-        //TODO may need an iterator and such
-        if(recipe_components.equals(item.getComponents())){
+
+
+        if(checkHasComponents(item, recipe_components)){
             return item.isOf(recipe_item);
         }
         return false;
     }
 
 
+    /**Checks if the components present in "components" are also
+     * present in the item and if they have the same value.
+     * This differs from checkSameComponents since you can specify like only
+     * one or two components instead of all of them
+     *
+     * @param item The item
+     * @param components The components that have to be on the item
+     * @return Returns false if the components aren't present on the item, or if they have different values
+     */
+    private static boolean checkHasComponents(ItemStack item, ComponentMap components){
+        for(Component<?> component : components.stream().toList()){
+            if(!item.contains(component.type())){
+                return false;
+            }else if(!Objects.equals(item.get(component.type()), component.value())){
+                return false;
+            }
+        }
+        return true;
+    }
 
 
 
@@ -193,7 +224,7 @@ public class CustomBrewRecipeRegister {
             }
         }
         for(CustomRecipeV2 recipe : CUSTOM_RECIPES_COMPONENTS){
-            if(equalsComponentsNew(item, recipe.input, recipe.ingredient_components, recipe.ingredient_component_type)){
+            if(equalsComponents(item, recipe.input, recipe.ingredient_components, recipe.ingredient_component_type)){
                 return true;
             }
         }
@@ -230,15 +261,15 @@ public class CustomBrewRecipeRegister {
         if(!item.getComponents().isEmpty() && (recipe_nbt_value == null && recipe_nbt_field == null)){
             return item.isOf(recipe_item);
         }
-        
-        
-        
+
+
+
         //If the string is not null it means it wants to check for the presence of a filed (and potentially its contents)
         if(recipe_nbt_field != null){
 
             //Checks if there is a ComponentMap, in which case it means a check for the value is needed as well
             if(recipe_nbt_value != null){
-                
+
 
                 if(item.hasNbt() && item.getNbt() != null && item.getNbt().contains(recipe_nbt_field)){
                     //No need to check if it's null because the recipe's value surely isn't null in here.
@@ -272,8 +303,8 @@ public class CustomBrewRecipeRegister {
         }
         return false;
     }*/
-    
-    
+
+
 
     public static List<CustomRecipe<Item>> getCustomRecipes(){
         return CUSTOM_RECIPES;
@@ -336,6 +367,19 @@ public class CustomBrewRecipeRegister {
             this.output_components = output_components;
         }
 
+        @Override
+        public String toString() {
+            return "CustomRecipeV2{" +
+                    "input=" + input +
+                    ", ingredient=" + ingredient +
+                    ", output=" + output +
+                    ", input_components=" + input_components +
+                    ", ingredient_components=" + ingredient_components +
+                    ", output_components=" + output_components +
+                    ", input_component_type=" + input_component_type +
+                    ", ingredient_component_type=" + ingredient_component_type +
+                    '}';
+        }
     }
 
     public static class CustomRecipeNBTOnly {

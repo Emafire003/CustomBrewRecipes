@@ -4,16 +4,18 @@ import me.emafire003.dev.custombrewrecipes.CustomBrewRecipeRegister;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.recipe.BrewingRecipeRegistry;
+import org.spongepowered.asm.mixin.Debug;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+@Debug(export = true)
 @Mixin(BrewingRecipeRegistry.class)
 public abstract class CustomBrewRecipesMixin{
 
-    @Inject(method = "craft", at = @At(value = "TAIL"), cancellable = true)
+    @Inject(method = "craft", at = @At(value = "HEAD"), cancellable = true)
     private void customCraftInject(ItemStack ingredient, ItemStack input, CallbackInfoReturnable<ItemStack> cir) {
         if (input == null || ingredient == null) {
             return;
@@ -27,18 +29,13 @@ public abstract class CustomBrewRecipesMixin{
         }
 
         for (CustomBrewRecipeRegister.CustomRecipeV2 recipe : CustomBrewRecipeRegister.getCustomRecipesComponents()) {
-            if (CustomBrewRecipeRegister.equalsComponentsNew(ingredient, recipe.ingredient, recipe.ingredient_components, recipe.ingredient_component_type)
-                    && CustomBrewRecipeRegister.equalsComponentsNew(input, recipe.input, recipe.input_components, recipe.input_component_type)
+            if (CustomBrewRecipeRegister.equalsComponents(ingredient, recipe.ingredient, recipe.ingredient_components, recipe.ingredient_component_type)
+                    && CustomBrewRecipeRegister.equalsComponents(input, recipe.input, recipe.input_components, recipe.input_component_type)
             ){
                 ItemStack out = new ItemStack(recipe.output);
                 if(recipe.output_components != null){
                     out.applyComponentsFrom(recipe.output_components);
-                }else{
-                    //TODO remove
-                    System.out.println("\n\n THE RECIPE COMPONENTS ARE NULL SKIPPING \n\n");
                 }
-
-                //out.set(DataComponentTypes.CUSTOM_DATA, recipe.output_components);
                 cir.setReturnValue(out);
                 return;
             }
@@ -68,9 +65,8 @@ public abstract class CustomBrewRecipesMixin{
             }
         }
         for (CustomBrewRecipeRegister.CustomRecipeV2 recipe : CustomBrewRecipeRegister.getCustomRecipesComponents()) {
-            if (CustomBrewRecipeRegister.equalsComponentsNew(ingredient, recipe.ingredient, recipe.ingredient_components, recipe.ingredient_component_type)
-                    && CustomBrewRecipeRegister.equalsComponentsNew(input, recipe.input, recipe.input_components, recipe.input_component_type)
-            ){
+            if (CustomBrewRecipeRegister.equalsComponents(ingredient, recipe.ingredient, recipe.ingredient_components, recipe.ingredient_component_type)
+                    && CustomBrewRecipeRegister.equalsComponents(input, recipe.input, recipe.input_components, recipe.input_component_type)){
                 return true;
             }
         }
@@ -86,7 +82,7 @@ public abstract class CustomBrewRecipesMixin{
             }
         }
         for(CustomBrewRecipeRegister.CustomRecipeV2 recipe : CustomBrewRecipeRegister.getCustomRecipesComponents()){
-            if(CustomBrewRecipeRegister.equalsComponentsNew(stack, recipe.ingredient, recipe.ingredient_components, recipe.ingredient_component_type)){
+            if(CustomBrewRecipeRegister.equalsComponents(stack, recipe.ingredient, recipe.ingredient_components, recipe.ingredient_component_type)){
                 return true;
             }
         }
