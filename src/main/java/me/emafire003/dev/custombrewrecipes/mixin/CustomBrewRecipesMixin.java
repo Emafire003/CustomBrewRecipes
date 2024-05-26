@@ -1,8 +1,11 @@
 package me.emafire003.dev.custombrewrecipes.mixin;
 
 import me.emafire003.dev.custombrewrecipes.CustomBrewRecipeRegister;
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.NbtComponent;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.recipe.BrewingRecipeRegistry;
 import org.spongepowered.asm.mixin.Debug;
 import org.spongepowered.asm.mixin.Mixin;
@@ -28,7 +31,7 @@ public abstract class CustomBrewRecipesMixin{
             }
         }
 
-        for (CustomBrewRecipeRegister.CustomRecipeV2 recipe : CustomBrewRecipeRegister.getCustomRecipesComponents()) {
+        for (CustomBrewRecipeRegister.CustomRecipeComponents recipe : CustomBrewRecipeRegister.getCustomRecipesComponents()) {
             if (CustomBrewRecipeRegister.equalsComponents(ingredient, recipe.ingredient, recipe.ingredient_components, recipe.ingredient_component_type)
                     && CustomBrewRecipeRegister.equalsComponents(input, recipe.input, recipe.input_components, recipe.input_component_type)
             ){
@@ -36,6 +39,17 @@ public abstract class CustomBrewRecipesMixin{
                 if(recipe.output_components != null){
                     out.applyComponentsFrom(recipe.output_components);
                 }
+                cir.setReturnValue(out);
+                return;
+            }
+        }
+
+        for (CustomBrewRecipeRegister.CustomRecipeNBTOnly recipe : CustomBrewRecipeRegister.getCustomRecipesNbt()) {
+            if (CustomBrewRecipeRegister.equalsNbt(ingredient, recipe.ingredient, recipe.ingredient_nbt, recipe.ingredient_nbt_field)
+                    && CustomBrewRecipeRegister.equalsNbt(input, recipe.input, recipe.input_nbt, recipe.input_nbt_field)
+            ){
+                ItemStack out = new ItemStack(recipe.output);
+                NbtComponent.set(DataComponentTypes.CUSTOM_DATA, out, (NbtCompound) recipe.output_nbt);
                 cir.setReturnValue(out);
                 return;
             }
@@ -64,9 +78,16 @@ public abstract class CustomBrewRecipesMixin{
                 return true;
             }
         }
-        for (CustomBrewRecipeRegister.CustomRecipeV2 recipe : CustomBrewRecipeRegister.getCustomRecipesComponents()) {
+        for (CustomBrewRecipeRegister.CustomRecipeComponents recipe : CustomBrewRecipeRegister.getCustomRecipesComponents()) {
             if (CustomBrewRecipeRegister.equalsComponents(ingredient, recipe.ingredient, recipe.ingredient_components, recipe.ingredient_component_type)
                     && CustomBrewRecipeRegister.equalsComponents(input, recipe.input, recipe.input_components, recipe.input_component_type)){
+                return true;
+            }
+        }
+        for (CustomBrewRecipeRegister.CustomRecipeNBTOnly recipe : CustomBrewRecipeRegister.getCustomRecipesNbt()) {
+            if (CustomBrewRecipeRegister.equalsNbt(ingredient, recipe.ingredient, recipe.ingredient_nbt, recipe.ingredient_nbt_field)
+                    && CustomBrewRecipeRegister.equalsNbt(input, recipe.input, recipe.input_nbt, recipe.input_nbt_field)
+            ){
                 return true;
             }
         }
@@ -81,8 +102,13 @@ public abstract class CustomBrewRecipesMixin{
                 return true;
             }
         }
-        for(CustomBrewRecipeRegister.CustomRecipeV2 recipe : CustomBrewRecipeRegister.getCustomRecipesComponents()){
+        for(CustomBrewRecipeRegister.CustomRecipeComponents recipe : CustomBrewRecipeRegister.getCustomRecipesComponents()){
             if(CustomBrewRecipeRegister.equalsComponents(stack, recipe.ingredient, recipe.ingredient_components, recipe.ingredient_component_type)){
+                return true;
+            }
+        }
+        for(CustomBrewRecipeRegister.CustomRecipeNBTOnly recipe : CustomBrewRecipeRegister.getCustomRecipesNbt()){
+            if(CustomBrewRecipeRegister.equalsNbt(stack, recipe.ingredient, recipe.ingredient_nbt, recipe.ingredient_nbt_field)){
                 return true;
             }
         }
