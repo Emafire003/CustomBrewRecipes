@@ -21,8 +21,8 @@
       "custombrewrecipes.mixins.json"
 	],
 	"depends": {
-		"fabricloader": ">=0.15.3",
-		"minecraft": ">=1.18-",
+		"fabricloader": ">=0.15.5",
+		"minecraft": ">=1.20.5",
 		"java": ">=16"
 	},
 	"suggests": {
