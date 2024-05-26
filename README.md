@@ -1,30 +1,32 @@
 # CustomBrewRecipes
-A fabric mod that allows developers to create new Brewing Recipes that also support custom non potion items and NBT data. 
+A fabric mod that allows developers to create new Brewing Recipes that also support custom non potion items and Components or NBT data. 
 
 Detailed instructions can be found in the javadoc, but all you have to do is calling 
 ```java
 CustomBrewRecipeRegister.registerCustomRecipe()
 ```
  and supply the items for the recipe.
-Or if you need nbt, use the 
+ 
+Or if you need custom components, use the 
 ```java
-CustomBrewRecipeRegister.registerCustomRecipeNbt()
+CustomBrewRecipeRegister.registerCustomRecipeWithComponents()
 ```
-and either use itemstacks that already have nbt or supply the nbt to the method.
+and either use itemstacks that already have custom components or supply the nbt to the method.
 
-### From version 1.1.0
-You can also check for the presence of nbt-fields and not their values! 
-```java
-CustomBrewRecipeRegister.registerCustomRecipeFieldOnlyNbt()
-```
-NB: The output item will still need to have the whole NBT, since it's the one which is going to be created!
+There also is a NBT version of the method that saves stuff to the CustomData component.
 
-### From version 1.2.0
-Now you can also check for the presence of field and specific value! You will need to use 
+You can also check for the presence of component types (or nbt-fields) and not their values! 
 ```java
-CustomBrewRecipeRegister.registerCustomRecipeNbtField();
+CustomBrewRecipeRegister.registerCustomRecipeWithComponentPrescence()
 ```
-NB: The output item will still need to have the whole NBT, since it's the one which is going to be created!
+NB: The output item will still need to have the whole ComponentMap/NBT, since it's the one which is going to be created!
+
+
+You can also check for the presence of field/componet and specific value! You will need to use 
+```java
+CustomBrewRecipeRegister.registerCustomRecipeWithComponentType();
+```
+NB: The output item will still need to have the whole ComponentMap/NBT, since it's the one which is going to be created!
 
 
 
