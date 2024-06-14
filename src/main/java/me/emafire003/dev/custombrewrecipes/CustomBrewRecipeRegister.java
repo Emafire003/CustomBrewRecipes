@@ -2,7 +2,7 @@ package me.emafire003.dev.custombrewrecipes;
 
 import net.minecraft.component.Component;
 import net.minecraft.component.ComponentMap;
-import net.minecraft.component.DataComponentType;
+import net.minecraft.component.ComponentType;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -116,16 +116,16 @@ public class CustomBrewRecipeRegister {
      * @param input The input item, the "base" item like a water_bottle for normal recipes
      * @param ingredient The ingredient item, like spider's eye, glowstone dust ecc
      * @param output The output item, the one that will result from this recipe
-     * @param input_component_type A DataComponentType that must be present on the item, regardless of its value
-     * @param ingredient_component_type A DataComponentType that must be present on the item, regardless of its value
+     * @param input_component_type A ComponentType that must be present on the item, regardless of its value
+     * @param ingredient_component_type A ComponentType that must be present on the item, regardless of its value
      * @param output_components A ComponentMap that will be attached to the output item. You can use item.getComponents().add(yourstuff) or ComponentMap.builder or similar things
      * */
-    public static void registerCustomRecipeWithComponentPresence(Item input, Item ingredient, Item output, @Nullable DataComponentType<?> input_component_type, @Nullable DataComponentType<?> ingredient_component_type, @Nullable ComponentMap output_components) {
+    public static void registerCustomRecipeWithComponentPresence(Item input, Item ingredient, Item output, @Nullable ComponentType<?> input_component_type, @Nullable ComponentType<?> ingredient_component_type, @Nullable ComponentMap output_components) {
         CUSTOM_RECIPES_COMPONENTS.add(new CustomRecipeComponents(input, ingredient, output, ComponentMap.builder().add(input_component_type, null).build(), input_component_type, ComponentMap.builder().add(ingredient_component_type, null).build(), ingredient_component_type, output_components));
     }
 
     /** <b>WARNING!</b> This method will save NBT to the {@link DataComponentTypes}.CUSTOM_DATA, the one used by DataPacks!
-     * You probably want to use {@link #registerCustomRecipeWithComponentPresence(Item, Item, Item, DataComponentType, DataComponentType, ComponentMap)}
+     * You probably want to use {@link #registerCustomRecipeWithComponentPresence(Item, Item, Item, ComponentType, ComponentType, ComponentMap)}
      * and use your own custom components.
      * <p>
      * Use this method to register new recipes using custom items.
@@ -149,7 +149,7 @@ public class CustomBrewRecipeRegister {
 
 
     /** <b>WARNING!</b> This method will save NBT to the {@link DataComponentTypes}.CUSTOM_DATA, the one used by DataPacks!
-     * You probably want to use {@link #registerCustomRecipeWithComponentType(Item, Item, Item, DataComponentType, Object, DataComponentType, Object, ComponentMap)}
+     * You probably want to use {@link #registerCustomRecipeWithComponentType(Item, Item, Item, ComponentType, Object, ComponentType, Object, ComponentMap)}
      * and use your own custom components.
      * <p>
      * Use this method to register new recipes using custom items.
@@ -163,13 +163,13 @@ public class CustomBrewRecipeRegister {
      * @param input The input item, the "base" item like a water_bottle for normal recipes
      * @param ingredient The ingredient item, like spider's eye, glowstone dust ecc
      * @param output The output item, the one that will result from this recipe
-     * @param input_component_type The {@link DataComponentType} of the component that must be on the input item
+     * @param input_component_type The {@link ComponentType} of the component that must be on the input item
      * @param input_component_value The value of the component that the input item must have
-     * @param ingredient_component_type The {@link DataComponentType} of the component that must be on the ingredient item
+     * @param ingredient_component_type The {@link ComponentType} of the component that must be on the ingredient item
      * @param ingredient_component_value The value of the component that the ingredient item must have
      * @param output_components A {@link ComponentMap} that will be attached to the output item. Use null if you don't want to add NBT to this item
      * */
-    public static <T, U> void registerCustomRecipeWithComponentType(Item input, Item ingredient, Item output, @Nullable DataComponentType<T> input_component_type, @Nullable T input_component_value, @Nullable DataComponentType<U> ingredient_component_type, @Nullable U ingredient_component_value, @Nullable ComponentMap output_components) {
+    public static <T, U> void registerCustomRecipeWithComponentType(Item input, Item ingredient, Item output, @Nullable ComponentType<T> input_component_type, @Nullable T input_component_value, @Nullable ComponentType<U> ingredient_component_type, @Nullable U ingredient_component_value, @Nullable ComponentMap output_components) {
         CUSTOM_RECIPES_COMPONENTS.add(new CustomRecipeComponents(input, ingredient, output, ComponentMap.builder().add(input_component_type, input_component_value).build(), input_component_type, ComponentMap.builder().add(ingredient_component_type, ingredient_component_value).build(), ingredient_component_type, output_components));
     }
 
@@ -218,7 +218,7 @@ public class CustomBrewRecipeRegister {
 
     /**Used internally to check if an itemstack and an item share the same Component data.
      * This also applies to not having custom component data.
-     * This is also used to check if the itemstack has a DataComponentType present,
+     * This is also used to check if the itemstack has a ComponentType present,
      * but not necessarily have the same values as well
      *<p>
      * Generally you DON'T NEED TO USE IT
@@ -226,11 +226,11 @@ public class CustomBrewRecipeRegister {
      * @param item The itemstack that is used and should have nbt data
      * @param recipe_item The item from the recipe
      * @param recipe_components A ComponentMap value that will need to correspond either to the whole ComponentMap of the item, or to a value stored in a filed if the next parameter isn't null
-     * @param recipe_component_type A DataComponentType representing the component type that has to be present on the item if the above parameter is null, or if isn't the filed to check the value of.
+     * @param recipe_component_type A ComponentType representing the component type that has to be present on the item if the above parameter is null, or if isn't the filed to check the value of.
      *
      * @return true if the item from the stack and the one from the recipe have the same nbt, or don't have nbt.
      * */
-    public static boolean equalsComponents(ItemStack item, Item recipe_item, @Nullable ComponentMap recipe_components, @Nullable DataComponentType<?> recipe_component_type){
+    public static boolean equalsComponents(ItemStack item, Item recipe_item, @Nullable ComponentMap recipe_components, @Nullable ComponentType<?> recipe_component_type){
         //Checks if they item doesn't have components and if the recipe components & types are null, in which case it returns true only if the item and the one on the recipe are the same type
         if(checkDefaultComponentsOnly(item) && (recipe_components == null && recipe_component_type == null)){
 
@@ -409,9 +409,9 @@ public class CustomBrewRecipeRegister {
         @Nullable
         public ComponentMap output_components;
         @Nullable
-        public DataComponentType<?> input_component_type;
+        public ComponentType<?> input_component_type;
         @Nullable
-        public DataComponentType<?> ingredient_component_type;
+        public ComponentType<?> ingredient_component_type;
 
         public CustomRecipeComponents(Item input, Item ingredient, Item output){
             this.input = input;
@@ -428,7 +428,7 @@ public class CustomBrewRecipeRegister {
             this.output_components = output_components;
         }
 
-        public CustomRecipeComponents(Item input, Item ingredient, Item output, @Nullable DataComponentType<?> input_component_type, @Nullable DataComponentType<?> ingredient_component_type, @Nullable ComponentMap output_components){
+        public CustomRecipeComponents(Item input, Item ingredient, Item output, @Nullable ComponentType<?> input_component_type, @Nullable ComponentType<?> ingredient_component_type, @Nullable ComponentMap output_components){
             this.input = input;
             this.ingredient = ingredient;
             this.output = output;
@@ -437,7 +437,7 @@ public class CustomBrewRecipeRegister {
             this.output_components = output_components;
         }
 
-        public CustomRecipeComponents(Item input, Item ingredient, Item output, @Nullable ComponentMap input_components, @Nullable DataComponentType<?> input_component_type, @Nullable ComponentMap ingredient_components, @Nullable DataComponentType<?> ingredient_component_type, @Nullable ComponentMap output_components){
+        public CustomRecipeComponents(Item input, Item ingredient, Item output, @Nullable ComponentMap input_components, @Nullable ComponentType<?> input_component_type, @Nullable ComponentMap ingredient_components, @Nullable ComponentType<?> ingredient_component_type, @Nullable ComponentMap output_components){
             this.input = input;
             this.ingredient = ingredient;
             this.output = output;
