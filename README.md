@@ -29,9 +29,6 @@ CustomBrewRecipeRegister.registerCustomRecipeWithComponentType();
 NB: The output item will still need to have the whole ComponentMap/NBT, since it's the one which is going to be created!
 
 
-
-[![bisecthosting](https://github.com/Emafire003/ColoredGlowLib/assets/29462910/973c0c1a-062c-4c4a-aa04-f02e184fd5d7)](https://www.bisecthosting.com/LightDev)
-
 ## Setup
 
 You can add it to your project by adding in your build.gradle:
