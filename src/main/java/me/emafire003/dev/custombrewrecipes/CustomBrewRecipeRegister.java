@@ -6,6 +6,7 @@ import net.minecraft.component.ComponentType;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import org.jetbrains.annotations.Nullable;
@@ -46,13 +47,13 @@ public class CustomBrewRecipeRegister {
      * @param output The output item, the one that will result from this recipe
      * @param input_components A map of components that must be present on the input item.
      *                  It can also be null if it shouldn't have any custom components, or have like only one.
-     *                  You can create a new component map using {@link net.minecraft.component.ComponentMap}.builder()
+     *                  You can create a new component map using {@link ComponentMap}.builder()
      * @param ingredient_components A map of components that must be present on the ingredient item.
      *      *                It can also be null if it shouldn't have any custom components, or have like only one.
-     *      *                You can create a new component map using {@link net.minecraft.component.ComponentMap}.builder()
+     *      *                You can create a new component map using {@link ComponentMap}.builder()
      * @param output_components A ComponentMap that will be added to the output item. They can be custom components or edited vanilla components.
      *      *            It can also be null if it shouldn't have any custom components, or have like only one.
-     *      *            You can create a new component map using {@link net.minecraft.component.ComponentMap}.builder()
+     *      *            You can create a new component map using {@link ComponentMap}.builder()
      * */
     public static void registerCustomRecipeWithComponents(Item input, Item ingredient, Item output, @Nullable ComponentMap input_components, @Nullable ComponentMap ingredient_components, @Nullable ComponentMap output_components) {
         CUSTOM_RECIPES_COMPONENTS.add(new CustomRecipeComponents(input, ingredient, output, input_components, ingredient_components, output_components));
@@ -233,7 +234,6 @@ public class CustomBrewRecipeRegister {
     public static boolean equalsComponents(ItemStack item, Item recipe_item, @Nullable ComponentMap recipe_components, @Nullable ComponentType<?> recipe_component_type){
         //Checks if they item doesn't have components and if the recipe components & types are null, in which case it returns true only if the item and the one on the recipe are the same type
         if(checkDefaultComponentsOnly(item) && (recipe_components == null && recipe_component_type == null)){
-
             return item.isOf(recipe_item);
         }
 
@@ -267,32 +267,42 @@ public class CustomBrewRecipeRegister {
             return false;
         }
 
-
         if(checkHasComponents(item, recipe_components)){
             return item.isOf(recipe_item);
+            
         }
         return false;
     }
 
 
+    static int the_counter = 0;
+
     /**Checks if the components present in "components" are also
      * present in the item and if they have the same value.
      * This differs from checkSameComponents since you can specify like only
-     * one or two components instead of all of them
+     * one or two components instead of all of them (that still must all be present in the item stack)
      *
      * @param item The item
      * @param components The components that have to be on the item
      * @return Returns false if the components aren't present on the item, or if they have different values
      */
     private static boolean checkHasComponents(ItemStack item, ComponentMap components){
+        int ok_components = 0;
         for(Component<?> component : components.stream().toList()){
+            if(item.contains(component.type()) && Objects.equals(item.get(component.type()), component.value())){
+                ok_components++;
+            }
+            
+        }
+        return ok_components == components.size();
+        /*for(Component<?> component : components.stream().toList()){
             if(!item.contains(component.type())){
                 return false;
             }else if(!Objects.equals(item.get(component.type()), component.value())){
                 return false;
             }
         }
-        return true;
+        return true;*/
     }
 
 

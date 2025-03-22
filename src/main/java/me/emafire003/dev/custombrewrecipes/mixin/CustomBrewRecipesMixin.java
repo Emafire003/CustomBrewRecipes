@@ -69,6 +69,13 @@ public abstract class CustomBrewRecipesMixin{
         }
     }
 
+    @Inject(method = "isInput", at = @At(value = "HEAD"), cancellable = true)
+    private void injectIsValidCustomInput(ItemStack stack, CallbackInfoReturnable<Boolean> cir){
+        if(CustomBrewRecipeRegister.isValidCustomInput(stack)){
+            cir.setReturnValue(true);
+        }
+    }
+
     @Unique
     private boolean hasCustomRecipe(ItemStack input, ItemStack ingredient) {
         for(CustomBrewRecipeRegister.CustomRecipe<Item> recipe : CustomBrewRecipeRegister.getCustomRecipes()) {

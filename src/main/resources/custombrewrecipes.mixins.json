@@ -1,13 +1,12 @@
 {
-	"required": true,
-	"package": "me.emafire003.dev.custombrewrecipes.mixin",
-	"compatibilityLevel": "JAVA_16",
-	"mixins": [
-		"BrewingStandMixin",
-		"BrewingStandScreenHandlerMixin",
-		"CustomBrewRecipesMixin"
-	],
-	"injectors": {
-		"defaultRequire": 1
-	}
+  "required": true,
+  "package": "me.emafire003.dev.custombrewrecipes.mixin",
+  "compatibilityLevel": "JAVA_16",
+  "mixins": [
+    "BrewingStandMixin",
+    "CustomBrewRecipesMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
 }
